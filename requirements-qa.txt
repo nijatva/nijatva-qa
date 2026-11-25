@@ -1,0 +1,2 @@
+# njqa — APK inspection without an Android SDK
+androguard==4.1.4
