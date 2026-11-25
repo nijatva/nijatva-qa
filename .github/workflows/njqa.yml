@@ -1,0 +1,73 @@
+name: njqa
+
+# Reusable: an app repo calls this after building, and gets a policy verdict on
+# the APK it just produced. No emulator, no device, no Android SDK on the runner.
+#
+#   jobs:
+#     qa:
+#       needs: build
+#       uses: nijatva/nijatva-qa/.github/workflows/njqa.yml@main
+#       with:
+#         app-class: utility
+
+on:
+  workflow_call:
+    inputs:
+      app-class:
+        description: utility | media | phone | browser | vault
+        type: string
+        required: true
+      apk-glob:
+        description: path to the built APK
+        type: string
+        default: "app/build/outputs/apk/release/*.apk"
+      index-url:
+        description: index to verify sha256 / signer / versionCode against
+        type: string
+        default: "https://raw.githubusercontent.com/nijatva/nijatva-suite/main/index-v1.json"
+      strict-index:
+        description: fail when the package is not in the index yet
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  apk-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: nijatva/nijatva-qa
+          path: .njqa
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .njqa/requirements-qa.txt
+
+      - name: Install njqa
+        run: pip install -r .njqa/requirements-qa.txt
+
+      - name: Fetch the suite index
+        run: curl -fsSL "${{ inputs.index-url }}" -o index-v1.json
+
+      - name: Policy check on the built APK
+        run: |
+          set -e
+          APK=$(ls ${{ inputs.apk-glob }} | head -1)
+          echo "checking $APK"
+          ARGS=""
+          if [ "${{ inputs.strict-index }}" = "true" ]; then ARGS="--index index-v1.json"; fi
+          python .njqa/njqa.py apk "$APK" --class "${{ inputs.app-class }}" $ARGS | tee njqa-report.txt
+
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: njqa-report
+          path: njqa-report.txt
