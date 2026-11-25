@@ -17,10 +17,14 @@ on:
         description: utility | media | phone | browser | vault
         type: string
         required: true
-      apk-glob:
-        description: path to the built APK
+      artifact-name:
+        description: name of the build artifact to download (empty = look in the workspace)
         type: string
-        default: "app/build/outputs/apk/release/*.apk"
+        default: ""
+      apk-glob:
+        description: path to the APK after download
+        type: string
+        default: "apk/**/*.apk"
       index-url:
         description: index to verify sha256 / signer / versionCode against
         type: string
@@ -52,6 +56,13 @@ jobs:
 
       - name: Install njqa
         run: pip install -r .njqa/requirements-qa.txt
+
+      - name: Download the built APK
+        if: inputs.artifact-name != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: apk
 
       - name: Fetch the suite index
         run: curl -fsSL "${{ inputs.index-url }}" -o index-v1.json
