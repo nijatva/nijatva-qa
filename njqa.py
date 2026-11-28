@@ -114,7 +114,9 @@ def check(apk: Path, app_class: str):
         if p in NEVER:
             problems.append(f"permission {p.split('.')[-1]}: {NEVER[p]}")
         elif p not in allowed:
-            warnings.append(f"permission {p.split('.')[-1]} is not in the {app_class} allow-list")
+            # SECURITY-POLICY §2.4 is an allow-list, not advice: a permission outside it
+            # fails the build, otherwise the policy is decorative.
+            problems.append(f"permission {p.split('.')[-1]} is not in the {app_class} allow-list")
 
     target = int(a.get_target_sdk_version() or 0)
     if target < MIN_TARGET_SDK:
