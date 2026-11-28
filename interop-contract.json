@@ -1,0 +1,13 @@
+{
+  "$comment": "Derived from nijatva-core/INTEROP.md. action -> the app that must serve it.",
+  "standard": {
+    "android.intent.action.DIAL": "nijatva-dialer",
+    "android.intent.action.SENDTO": "nijatva-messages",
+    "android.intent.action.INSERT": "nijatva-contacts",
+    "android.intent.action.VIEW": "any (gallery, file, photo-editor)"
+  },
+  "custom": {
+    "in.nijatva.action.VIEW_MEDIA": "nijatva-gallery",
+    "in.nijatva.action.PICK_MEDIA": "nijatva-gallery"
+  }
+}
